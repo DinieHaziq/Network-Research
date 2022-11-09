@@ -1,0 +1,117 @@
+#!/bin/bash
+
+#Author: Dinie Haziq Bin Mohamad Raafe
+#Student code and class: S9, CFC2407
+#Lecturer: James
+
+#This script is for:- Updating and upgrading current version of Kali linux and installing neccessary tools
+#					- checking if you are anonymous and be anonymous
+#					- connecting to remote server once anonymous
+#					-scan ip address via remote server and store the information on our local machine
+#	Nipe we get the information on https://github.com/htrgouvea/nipe
+# We use nipe to be anonymous.
+
+function inst() #to update and upgrade system and install neccessary tools
+{
+	LOA="nmap masscan sshpass whois curl ssh"
+	
+	sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get install -y $LOA
+	
+	git clone https://github.com/htrgouvea/nipe && cd nipe
+	sudo cpan install Try::Tiny Config::Simple JSON
+	cd ~/nipe
+	sudo perl nipe.pl install
+	
+	sleep 5
+}
+
+inst
+
+function s1() #function to check our IP address and country
+{
+	cd ~/nipe
+	
+	IPx=$(sudo perl nipe.pl status |grep ip -i |awk -F: '{print $2}')
+	
+	echo "$IPx"
+	
+	CTRY=$(whois "$IPx" |grep -i country |awk '{print $2}' |head -n1)
+	
+	echo "$CTRY"
+	
+	sleep 15
+}
+
+s1
+
+function s2() #to check if we are anonymous and be anonymous
+{
+	if [ "$CTRY" == "SG" ] 
+	
+	then 
+	
+	sudo perl nipe.pl start
+	
+	sleep 15
+	
+	sudo perl nipe.pl restart
+	
+	
+	echo 'nipe started'
+	
+	elif [ "$CTRY" != "SG" ]
+	
+	then
+	
+	echo 'You are anonymous'
+	
+	fi
+	
+	sleep 15
+}
+
+s2
+
+s1
+
+s2
+
+function s3() #this is to enter remote server and conduct the scan
+{
+	echo "Please enter Username: "
+	read User
+	echo -n "Please enter Password: "
+	read Pass
+	echo "Please enter IP address: "
+	read IP
+	echo "Please enter IP adress to scan"
+	read scan
+	SSHPASS="$Pass" sshpass -e ssh -o StrictHostKeyChecking = no "$User"@"$IP" 'echo -n "$Pass" |sudo -S apt-get install -y nmap && sudo -S apt-get install -y whois'
+	SSHPASS="$Pass" sshpass -e ssh -o StrictHostKeyChecking = no "$User"@"$IP" 'nmap "$scan" -oN project.scan'
+	SSHPASS="$Pass" sshpass -e ssh -o StrictHostKeyChecking = no "$User"@"$IP" 'whois "$scan" >> projectwhois.scan'
+
+	
+}
+
+s3
+
+sleep 15
+
+function s4() #this is to retrieve the scan on remote server to our local host
+			  #by using sshpass from earlier, and scp as the protocol, we are able to copy the scan from the remote server to our local host, by indicating where the file is stored to where we want it to copy.
+{
+	cd ~
+	
+	SSHPASS="$Pass" sshpass -e scp -o StricthHostKeyChecking = no -o "$User"@"$IP":/home/"$User"/project.scan .
+	SSHPASS="$Pass" sshpass -e scp -o StricthHostKeyChecking = no -o "User"@"$IP":/home/"$User"/projectwhois.scan .
+	sleep 15
+	
+	echo 'You have the scan in your local machine'
+	
+	
+	cat project.scan
+	sleep 30
+	cat projectwhois.scan
+}
+
+s4
