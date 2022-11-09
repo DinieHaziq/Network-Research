@@ -56,6 +56,8 @@ function s2() #to check if we are anonymous and be anonymous
 	
 	sudo perl nipe.pl restart
 	
+	sleep 15
+	
 	
 	echo 'nipe started'
 	
@@ -86,9 +88,9 @@ function s3() #this is to enter remote server and conduct the scan
 	read IP
 	echo "Please enter IP adress to scan"
 	read scan
-	SSHPASS="$Pass" sshpass -e ssh -o StrictHostKeyChecking = no "$User"@"$IP" 'echo -n "$Pass" |sudo -S apt-get install -y nmap && sudo -S apt-get install -y whois'
-	SSHPASS="$Pass" sshpass -e ssh -o StrictHostKeyChecking = no "$User"@"$IP" 'nmap "$scan" -oN project.scan'
-	SSHPASS="$Pass" sshpass -e ssh -o StrictHostKeyChecking = no "$User"@"$IP" 'whois "$scan" >> projectwhois.scan'
+	sshpass -p "$Pass" ssh -o StrictHostKeyChecking=no "$User"@"$IP" 'echo -n "$Pass" |sudo -S apt-get install -y nmap && sudo -S apt-get install -y whois'
+	sshpass -p "$Pass" ssh -o StrictHostKeyChecking=no "$User"@"$IP" 'nmap "$scan" -oN project.scan'
+	sshpass -p "$Pass" ssh -o StrictHostKeyChecking=no "$User"@"$IP" 'whois "$scan" >> projectwhois.scan'
 
 	
 }
@@ -102,8 +104,8 @@ function s4() #this is to retrieve the scan on remote server to our local host
 {
 	cd ~
 	
-	SSHPASS="$Pass" sshpass -e scp -o StricthHostKeyChecking = no -o "$User"@"$IP":/home/"$User"/project.scan .
-	SSHPASS="$Pass" sshpass -e scp -o StricthHostKeyChecking = no -o "User"@"$IP":/home/"$User"/projectwhois.scan .
+	sshpass -p "$Pass" scp -o StricthHostKeyChecking=no "$User"@"$IP":/home/"$User"/project.scan .
+	sshpass -p "$Pass" scp -o StricthHostKeyChecking=no "User"@"$IP":/home/"$User"/projectwhois.scan .
 	sleep 15
 	
 	echo 'You have the scan in your local machine'
